@@ -750,7 +750,8 @@ export function showAuction(driver, pend) {
     const pass = el('button', 'btn', 'Pass');
     pass.onclick = () => { closeModal(); driver.humanChoose({ type: 'pass' }); };
     acts.append(mkBtn('+$10', 10), mkBtn('+$50', 50), mkBtn('+$100', 100), inp, bid, pass);
-    if (me.cash < minNext) acts.innerHTML = `<span class="sub">You can't cover the minimum bid (${fmt(minNext)}) — sitting this out.</span>`;
+    if (me.cash < minNext) acts.innerHTML = `<span class="sub">Can't cover the minimum bid (${fmt(minNext)}) — auto-passing…</span>`;
+      setTimeout(() => { if (driver.state.auction) driver.humanChoose({ type: 'pass' }); }, 1200);
   } else {
     acts.append(el('span', 'sub', `Waiting for ${esc(s.players[a.cursor]?.name || 'bids')}…`));
   }
@@ -795,7 +796,8 @@ export function showAuction(driver, pend) {
       const pass = el('button', 'btn', 'Pass');
       pass.onclick = () => { closeModal(); driver.humanChoose({ type: 'pass' }); };
       curActs.append(inp, bid, pass);
-      if (me2.cash < minBid) curActs.innerHTML = `<span class="sub">You can't cover the minimum bid (${fmt(minBid)}).</span>`;
+      if (me2.cash < minBid) curActs.innerHTML = `<span class="sub">Can't cover the minimum bid (${fmt(minBid)}) — auto-passing…</span>`;
+        setTimeout(() => { if (driver.state.auction) driver.humanChoose({ type: 'pass' }); }, 1200);
     }
   }, 300);
 }

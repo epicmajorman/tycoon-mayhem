@@ -407,3 +407,12 @@ so the right button never leaves the page; right-drag panning still works when a
 - **Money verification**: netWorth = cash + property price + building costs + stock
   value + pyramid position (40% face) + deal assets + dreams − loan debt. All
   component formulas verified and correct.
+
+## 28. Round 16: auction can't-afford fix
+
+- **Engine**: `auctionNext()` now prunes both bankrupt AND can't-afford players before
+  prompting. If a player's cash is below the minimum bid, they fold automatically and
+  are removed from the active bidders list. This prevents the game from prompting a
+  player who has no way to participate, which previously caused a permanent lock.
+- **UI**: the "sitting this out" message now auto-passes after 1.2s instead of leaving
+  the player stranded with no way to continue.

@@ -1064,8 +1064,17 @@ export class Engine {
   auctionNext() {
     const a = this.s.auction;
     if (!a) return;
-    // prune bankrupt
-    a.active = a.active.filter(i => !this.P(i).bankrupt);
+    const minBid = Math.max(10, a.bid + 10);
+    // prune bankrupt AND can't-afford players — neither can participate
+    a.active = a.active.filter(i => {
+      const pl = this.P(i);
+      if (pl.bankrupt) return false;
+      if (pl.cash < minBid) {
+        this.log(`${pl.name} can't cover the minimum bid (${money(minBid)}) — folds.`, '🔨');
+        return false;
+      }
+      return true;
+    });
     if (a.active.length === 0 || (a.active.length === 1 && a.bidder !== -1)) {
       // nobody left, or one player left standing: the high bid stands
       this.finishAuction(); return;
@@ -1075,7 +1084,7 @@ export class Engine {
     while (!a.active.includes(a.cursor) && guard++ < 12) a.cursor = (a.cursor + 1) % this.s.players.length;
     if (a.active.length === 1 && a.bidder === -1) { /* sole bidder may open at min or pass */ }
     this.s.phase = 'auction';
-    this.prompt('auction', a.cursor, { tile: a.tile, bid: a.bid, bidder: a.bidder, minBid: Math.max(10, a.bid + 10) });
+    this.prompt('auction', a.cursor, { tile: a.tile, bid: a.bid, bidder: a.bidder, minBid });
   }
   auctionBid(p, amount) {
     const a = this.s.auction;
