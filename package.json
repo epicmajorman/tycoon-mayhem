@@ -1,0 +1,1 @@
+{"name":"tycoon-mayhem","version":"1.0.0","type":"module","scripts":{"start":"node server/server.mjs","test":"node tests/sim.mjs 25"}}

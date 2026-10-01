@@ -1,0 +1,20 @@
+# OS junk
+Thumbs.db
+.DS_Store
+Desktop.ini
+
+# logs & temp
+*.log
+_tmp/
+_tmp.*
+_*.py
+_*.cjs
+*.tmp
+
+# editor
+.vscode/
+.idea/
+
+# one-off patch scripts
+_*.py
+patchread.py
