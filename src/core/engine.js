@@ -1491,7 +1491,9 @@ export class Engine {
         const par = d.par;
         if (s.stocks[d.id].price > par * 1.8) tick -= 1;
         if (s.stocks[d.id].price < par * 0.7) tick += 1;
-          tick += this.rng.int(-1, 1);
+        // wide random swings: base noise ±3, plus a 25%×chaos chance of a spike/crash ±4-9
+        tick += this.rng.int(-3, 3);
+        if (this.rng.chance(0.25 * Math.max(0.4, this.flags.chaos ?? 1))) tick += this.rng.pick([-1, 1]) * this.rng.int(3, 8);
         const before = s.stocks[d.id].price;
         this.bumpStock(d.id, tick);
         if (s.stocks[d.id].price !== before) shifts.push({ dist: d.id, old: before, price: s.stocks[d.id].price });

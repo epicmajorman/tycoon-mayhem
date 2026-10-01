@@ -362,3 +362,23 @@ depends on it. A **navigation pad** (bottom-right, wood/teal styled) offers pan 
 zoom in/out and a reset-home button — hold to repeat. **Keyboard navigation** mirrors it:
 WASD / arrow keys pan, +/− zoom, Home resets view. The global contextmenu is suppressed
 so the right button never leaves the page; right-drag panning still works when available.
+
+## 25. Round 13: market volatility, trade value meter, camera polish
+
+- **Wider stock swings**: base noise widened to ±3, plus a 25%×chaos chance of a
+  spike/crash worth ±4–8 ticks. All shifts still fire after the last player's turn
+  (roundEnd), never mid-cycle.
+- **Trade broker value meter**: the rebuilt trade panel shows a live Give ⇄ Get value
+  comparison with a net-worth bar, plus color-group impact lines ("complements Midtown
+  MONOPOLY for you", "Midtown 3/4 — one away") so players see at a glance what a trade
+  is worth beyond raw dollar values.
+- **AI buys instead of auctioning**: purchase acceptance raised from 1.25× to 1.6×
+  perceived value, auction bids raised to max(bidFactor+0.45, 0.7) × tile value,
+  mistake rate on auctions reduced. Reserve cash lowered to 25% so bots actually spend.
+- **End Turn always available**: the dock shows an End Turn button whenever it's the
+  human's turn (not just before rolling) — clicking it during a non-roll prompt
+  answers with the safe default to advance past locks.
+- **Pieces face travel direction**: tokens rotate toward their hop target mid-move,
+  then settle facing outward at the destination tile.
+- **Bot badge no longer clipped**: player card widened to 286px, name shrinks to
+  reserve room for the HUMAN/STANDARD badge.

@@ -149,7 +149,7 @@ h1.logo { font-family: var(--serif); font-size: clamp(30px, 4.6vw, 54px); font-w
 .pf-list, .rp-list { scrollbar-width: thin; }
 
 /* --- player cards: wooden plaques --- */
-#players { position: absolute; left: 14px; top: 14px; display: flex; flex-direction: column; gap: 8px; width: 274px; max-height: calc(100vh - 210px); overflow-y: auto; scrollbar-width: thin; }
+#players { position: absolute; left: 14px; top: 14px; display: flex; flex-direction: column; gap: 8px; width: 286px; max-height: calc(100vh - 210px); overflow-y: auto; scrollbar-width: thin; }
 .pcard { position: relative; padding: 9px 12px 10px 16px; border-radius: 14px; background-image: var(--wood-panel);
   border: 2px solid var(--wood-edge); transition: 0.2s; box-shadow: inset 0 1px 0 rgba(255,220,160,0.2), 0 7px 18px rgba(0,0,0,0.45); }
 .pcard .psub { flex-wrap: wrap; white-space: normal; }
@@ -163,9 +163,10 @@ h1.logo { font-family: var(--serif); font-size: clamp(30px, 4.6vw, 54px); font-w
   background: color-mix(in srgb, var(--pc) 20%, #241307); border: 2px solid var(--pc); flex: none;
   box-shadow: inset 0 2px 5px rgba(0,0,0,0.45); }
 .pcard .who { flex: 1; min-width: 0; }
-.pcard .who .nm { display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden;
+.pcard .who .nm { display: flex; align-items: center; gap: 5px; white-space: nowrap; overflow: hidden;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7); }
-.pcard .who .nm > :first-child { overflow: hidden; text-overflow: ellipsis; }
+.pcard .who .nm > :first-child { overflow: hidden; text-overflow: ellipsis; flex-shrink: 1; min-width: 20px; }
+.pcard .who .nm .bot { flex-shrink: 0; max-width: 72px; overflow: hidden; text-overflow: ellipsis; }
 .pcard .psub { display: flex; gap: 8px; color: #c9ae7d; font-size: 10.5px; margin-top: 2px; font-family: var(--mono); white-space: nowrap; overflow: hidden; }
 .pcard .moneycol { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex: none; margin-left: auto; }
 .pcard .pcash { font-family: var(--display); font-size: 21px; font-weight: 800; color: var(--gold);
@@ -450,3 +451,16 @@ h1.logo { font-family: var(--serif); font-size: clamp(30px, 4.6vw, 54px); font-w
   box-shadow: 0 4px 12px rgba(0, 20, 18, 0.45), inset 0 1px 0 rgba(190, 255, 240, 0.25); user-select: none; touch-action: none; }
 #navpad button:hover { filter: brightness(1.15); }
 #navpad button:active { transform: translateY(1px); filter: brightness(0.95); }
+
+/* trade broker value analysis */
+.tr-analysis { border-radius: 13px; padding: 10px 14px; margin: 8px 0 12px; background: rgba(15, 7, 2, 0.45); border: 1px solid var(--line); min-height: 52px; }
+.tr-vals { display: flex; align-items: center; gap: 14px; font-size: 14px; color: #d8c69b; flex-wrap: wrap; }
+.tr-vals b { font-family: var(--mono); font-size: 17px; }
+.tr-vals .tr-arrow { color: var(--dim); font-size: 18px; }
+.tr-vals .tr-good { color: var(--green); }
+.tr-vals .tr-warn { color: var(--gold); }
+.tr-net { margin-left: auto; font-family: var(--display); font-weight: 800; font-size: 16px; padding: 3px 12px; border-radius: 8px; background: rgba(15,7,2,0.5); }
+.tr-net.tr-good { color: #b8ffd0; }
+.tr-net.tr-warn { color: #ffd9a0; }
+.tr-impacts { margin-top: 6px; display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--brass); }
+.tr-impacts div::before { content: '◆ '; opacity: 0.6; }

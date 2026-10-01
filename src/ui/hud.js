@@ -319,13 +319,26 @@ export class Hud {
     if (pend && DECISIONS.includes(pend.kind) && mine && !document.querySelector('.modal-veil')) {
       html += `<button class="btn primary" id="btn-resume">⏳ ${promptLabel(pend.kind)} — resume</button>`;
     }
+    // End Turn always available on your turn — never locked out
+    if (mine && p && !p.bankrupt && pend && pend.kind !== 'debt' && pend.kind !== 'trade' && !s.auction) {
+      const hasEnd = html.includes('btn-end');
+      if (!hasEnd) html += `<button class="btn ghost" id="btn-end">End Turn ⏭</button>`;
+    }
     bar.innerHTML = html;
     const resume = $('#btn-resume');
     if (resume) resume.onclick = () => this.driver.reopenPending();
     const roll = $('#btn-roll');
     if (roll) { roll.classList.add('waiting'); roll.onclick = () => { roll.classList.remove('waiting'); this.driver.humanAct('roll'); }; }
     const end = $('#btn-end');
-    if (end) end.onclick = () => this.driver.humanAct('endTurn');
+    if (end) end.onclick = () => {
+      const s = this.driver.state;
+      if (s.pending && s.pending.kind === 'roll' && s.pending.player === s.turn) {
+        this.driver.humanAct('endTurn');
+      } else {
+        // stuck on a non-roll prompt: answer it with the safe default to advance
+        this.driver.safeDefault(s.turn);
+      }
+    };
     bar.querySelectorAll('[data-open]').forEach(b => {
       b.onclick = () => this.driver.openPanel(b.dataset.open);
     });

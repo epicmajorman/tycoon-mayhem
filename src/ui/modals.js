@@ -230,20 +230,49 @@ export function showTradeBuilder(driver, fromSeat, opts = {}) {
   const s = driver.state;
   const me = s.players[fromSeat ?? s.turn];
   const others = alivePlayers(s).filter(p => p.id !== me.id);
-  const sel = { to: opts.to ?? others[0]?.id, give: { cash: 0, props: [], stocks: {}, items: [], gojf: 0 }, get: { cash: 0, props: [...(opts.wantProps || [])], stocks: {}, items: [], gojf: 0 } };
-  const box = modal(`
-    <h2>🔄 Trade Broker</h2>
-    <div class="sub">Properties, cash, stocks, jail cards and items. Complete your sets — or deny theirs.</div>
-    <div class="field" style="margin-bottom:10px">Partner: <select id="tr-partner">${others.map(p => `<option value="${p.id}">${esc(p.name)}${p.isAI ? ' (AI)' : ''}</option>`).join('')}</select></div>
-    <div class="trade-cols">
-      <div class="trade-side"><h3 style="color:${me.color}">You give</h3><div id="tr-give"></div></div>
-      <div class="trade-side"><h3 id="tr-getname">They give</h3><div id="tr-get"></div></div>
-    </div>
-    <div class="row">
-      <button class="btn ghost" id="tr-cancel">Cancel</button>
-      <button class="btn primary" id="tr-send">Propose</button>
-    </div>
-  `, { sticky: true });
+  const sel = { to: opts.to ?? others[0]?.id, give: { cash: 0, props: [...(opts.wantProps || [])], stocks: {}, items: [], gojf: 0 }, get: { cash: 0, props: [], stocks: {}, items: [], gojf: 0 } };
+
+  // ---- value analysis helpers ----
+  const propValue = (i) => {
+    const t = TILES[i];
+    let v = t.price;
+    const dist = DISTRICTS[D[t.district]];
+    if (!dist) return v;
+    const dtiles = DISTRICT_TILES[dist.id];
+    const mine = dtiles.filter(x => s.props[x].owner === me.id).length;
+    const theirs = dtiles.filter(x => s.props[x].owner === sel.to).length;
+    return v;
+  };
+  const setImpact = (sideKey, tileIdx) => {
+    // what does giving/receiving this tile do to color-group completion?
+    const t = TILES[tileIdx];
+    if (t.type !== 'property') return '';
+    const dist = DISTRICTS[D[t.district]];
+    const dtiles = DISTRICT_TILES[dist.id];
+    const receiver = sideKey === 'give' ? sel.to : me.id;
+    const after = dtiles.filter(x => x !== tileIdx && s.props[x].owner === receiver).length + 1;
+    if (after === dtiles.length) return `✓ completes ${esc(dist.name)} MONOPOLY for ${sideKey === 'give' ? esc(s.players[sel.to]?.name || 'them') : 'you'}`;
+    if (after >= dtiles.length - 1) return `▸ ${esc(dist.name)} ${after}/${dtiles.length} — one away`;
+    return `${esc(dist.name)} ${after}/${dtiles.length}`;
+  };
+  const sideValue = (sideKey) => {
+    const side = sel[sideKey];
+    let v = side.cash || 0;
+    for (const t of side.props || []) v += TILES[t] ? TILES[t].price : 0;
+    for (const d in (side.stocks || {})) v += (s.stocks[d]?.price || 0) * side.stocks[d];
+    v += (side.gojf || 0) * 150;
+    return v;
+  };
+  const sideLabel = (sideKey) => {
+    const side = sel[sideKey];
+    const bits = [];
+    for (const t of side.props || []) {
+      const imp = setImpact(sideKey, t);
+      if (imp) bits.push(imp);
+    }
+    return bits;
+  };
+
   const renderSide = (sideKey, boxId, who) => {
     const holder = box.querySelector('#' + boxId);
     holder.innerHTML = '';
@@ -258,6 +287,7 @@ export function showTradeBuilder(driver, fromSeat, opts = {}) {
         const k = side.props.indexOf(i);
         if (k >= 0) side.props.splice(k, 1); else side.props.push(i);
         it.classList.toggle('sel');
+        updateAnalysis();
       };
       holder.append(it);
     }
@@ -280,31 +310,72 @@ export function showTradeBuilder(driver, fromSeat, opts = {}) {
       holder.append(it);
     }
   };
+
+  const updateAnalysis = () => {
+    // read inputs into sel
+    box.querySelectorAll('[data-cash]').forEach(i => { sel[i.dataset.cash].cash = Math.max(0, parseInt(i.value || '0')); });
+    box.querySelectorAll('[data-stock]').forEach(i => {
+      const [sk, d] = i.dataset.stock.split(':');
+      sel[sk].stocks[d] = Math.max(0, parseInt(i.value || '0'));
+    });
+    box.querySelectorAll('[data-gojf]').forEach(i => { sel[i.dataset.gojf].gojf = Math.max(0, parseInt(i.value || '0')); });
+    const give = sideValue('give'), get = sideValue('get');
+    const net = get - give;
+    const el2 = box.querySelector('#tr-analysis');
+    if (!el2) return;
+    const impacts = [...sideLabel('get'), ...sideLabel('give')];
+    el2.innerHTML = `
+      <div class="tr-vals">
+        <span>You give <b class="${give > 0 ? 'tr-warn' : ''}">${fmt(give)}</b></span>
+        <span class="tr-arrow">⇄</span>
+        <span>You get <b class="${get > 0 ? 'tr-good' : ''}">${fmt(get)}</b></span>
+        <span class="tr-net ${net >= 0 ? 'tr-good' : 'tr-warn'}">Net: ${net >= 0 ? '+' : ''}${fmt(net)}</span>
+      </div>
+      ${impacts.length ? `<div class="tr-impacts">${impacts.map(i => `<div>${i}</div>`).join('')}</div>` : ''}
+    `;
+    box.querySelector('#tr-send').disabled = give === 0 && get === 0;
+  };
+
+  const box = modal(`
+    <h2>🔄 Trade Broker</h2>
+    <div class="sub">Properties, cash, stocks, jail cards and items. Watch the value meter — and what each tile does to color-group monopolies.</div>
+    <div class="field" style="margin-bottom:10px">Partner: <select id="tr-partner">${others.map(p => `<option value="${p.id}" ${p.id === sel.to ? 'selected' : ''}>${esc(p.name)}${p.isAI ? ' (AI)' : ''}</option>`).join('')}</select></div>
+    <div id="tr-analysis" class="tr-analysis"></div>
+    <div class="trade-cols">
+      <div class="trade-side"><h3 style="color:${me.color}">You give</h3><div id="tr-give"></div></div>
+      <div class="trade-side"><h3 id="tr-getname">They give</h3><div id="tr-get"></div></div>
+    </div>
+    <div class="row">
+      <button class="btn ghost" id="tr-cancel">Cancel</button>
+      <button class="btn primary" id="tr-send">Propose</button>
+    </div>
+  `, { sticky: true });
+
   const render = () => {
     const partner = s.players[sel.to];
     box.querySelector('#tr-getname').textContent = `${partner.name} gives`;
     renderSide('give', 'tr-give', me);
     renderSide('get', 'tr-get', partner);
+    box.querySelector('#tr-partner').onchange = (e) => {
+      sel.to = parseInt(e.target.value);
+      sel.give.props = []; sel.get.props = []; sel.give.stocks = {}; sel.get.stocks = {};
+      render();
+    };
+    updateAnalysis();
   };
-  box.querySelector('#tr-partner').onchange = (e) => { sel.to = parseInt(e.target.value); render(); };
-  box.addEventListener('input', (e) => {
-    if (e.target.dataset.cash) sel[e.target.dataset.cash].cash = Math.max(0, parseInt(e.target.value || '0'));
-    if (e.target.dataset.stock) {
-      const [sideKey, dist] = e.target.dataset.stock.split(':');
-      sel[sideKey].stocks[dist] = Math.max(0, parseInt(e.target.value || '0'));
-    }
-    if (e.target.dataset.gojf) sel[e.target.dataset.gojf].gojf = Math.max(0, parseInt(e.target.value || '0'));
-  });
+  render();
+
   box.querySelector('#tr-cancel').onclick = closeModal;
   box.querySelector('#tr-send').onclick = () => {
+    updateAnalysis();
     const offer = JSON.parse(JSON.stringify(sel));
     offer.give.cash = Math.max(0, offer.give.cash | 0);
     offer.get.cash = Math.max(0, offer.get.cash | 0);
     closeModal();
     driver.humanAct('proposeTrade', { ...offer, from: fromSeat ?? s.turn });
   };
-  render();
 }
+
 
 export function showTradeRespond(driver) {
   const s = driver.state;

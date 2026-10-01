@@ -275,11 +275,18 @@ export class Tokens3D {
     const mesh = this.meshes[playerIdx];
     mesh.userData.hopping = true;
     const task = (async () => {
+      let prev = mesh.position.clone();
       for (const t of tiles) {
-        await this.hopTo(mesh, this.slotPos(t, playerIdx), opts.speed || 0.24, opts.teleport);
+        const target = this.slotPos(t, playerIdx);
+        // face the direction of travel while hopping
+        const dir = target.clone().sub(prev);
+        if (dir.x || dir.z) mesh.rotation.y = Math.atan2(-dir.z, dir.x) || mesh.rotation.y;
+        await this.hopTo(mesh, target, opts.speed || 0.24, opts.teleport);
         mesh.userData.tile = t;
-        this.faceOutward(mesh, t);
+        prev = mesh.position.clone();
       }
+      // settle facing outward at the destination
+      this.faceOutward(mesh, tiles[tiles.length - 1]);
       mesh.userData.hopping = false;
     })();
     this.queues[playerIdx] = task;

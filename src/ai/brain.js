@@ -83,8 +83,8 @@ export class Brain {
         const v = this.tileValue(pend.tile);
         const dreamFloor = (this.s.flags.winMode === 'freedom' && p.freedom && p.dreams.length === 0)
           ? DREAMS[0].cost : 0;
-        const afford = p.cash - pend.price > dreamFloor + this.reserveCash() * 0.4;
-        if (!this.err() && afford && pend.price <= v * 1.25) e.choose('buy');
+        const afford = p.cash - pend.price > dreamFloor + this.reserveCash() * 0.25;
+        if (!this.err() && afford && pend.price <= v * 1.6) e.choose('buy');
         else e.choose('decline');
         return true;
       }
@@ -206,8 +206,8 @@ export class Brain {
       const v = this.tileValue(tile);
       const dreamFloor = (this.s.flags.winMode === 'freedom' && p.freedom && p.dreams.length === 0)
         ? DREAMS[0].cost : 0;
-      const afford = p.cash - pend.price > dreamFloor + this.reserveCash() * 0.4;
-      if (!this.err() && afford && pend.price <= v * 1.25) return e.choose('buy');
+      const afford = p.cash - pend.price > dreamFloor + this.reserveCash() * 0.25;
+      if (!this.err() && afford && pend.price <= v * 1.6) return e.choose('buy');
       return e.choose('pass');
     }
     if (pend.gateway === 'stocks' && this.s.flags.stocks && this.d.stockPlay > 0) this.actStocks(tile);
@@ -579,7 +579,7 @@ export class Brain {
     if (!a) return;
     const v = this.tileValue(a.tile);
     const rivalSetPull = DISTRICT_TILES[TILES[a.tile].district].filter(i => this.s.props[i].owner === a.bidder && a.bidder !== this.seat).length;
-    let maxBid = Math.min(Math.round(v * this.d.bidFactor), p.cash);
+    let maxBid = Math.max(Math.min(Math.round(v * (this.d.bidFactor + 0.45)), p.cash), Math.min(Math.round(v * 0.7), p.cash));
     // saving for the Dream: not one dollar of the fund goes under the hammer
     if (this.s.flags.winMode === 'freedom' && p.freedom && p.dreams.length === 0) {
       maxBid = Math.min(maxBid, Math.max(0, p.cash - DREAMS[0].cost));
@@ -590,7 +590,7 @@ export class Brain {
     }
     if (a.bidder === this.seat) maxBid = Math.min(maxBid, Math.round(v * this.d.bidFactor * 1.05)); // defend own bid a bit
     if (rivalSetPull >= 2) maxBid = Math.round(maxBid * 1.2); // deny
-    if (this.err()) maxBid = Math.round(maxBid * 0.6);
+    if (this.err()) maxBid = Math.round(maxBid * 0.85);
     if (p.cash - (a.bid + 10) < this.reserveCash() * 0.5) return e.choose({ type: 'pass' });
     if (a.bidder === -1) {
       const open = Math.min(Math.max(10, Math.round(v * 0.3)), maxBid);
