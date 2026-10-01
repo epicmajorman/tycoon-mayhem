@@ -901,8 +901,17 @@ function renderStocksInto(holder, driver, refresh, at = null) {
   const s = driver.state;
   const me = s.players[s.turn];
   const cols = DISTRICTS.length > 12 ? 3 : 2;
-  const grid = el('div', 'stock-grid');
-  for (const d of DISTRICTS) {
+  const PAGE_SIZE = 9;
+  let stockPage = 0;
+  const totalPages = Math.ceil(DISTRICTS.length / PAGE_SIZE);
+  const grid = el('div', 'stock-grid-paged');
+  const renderPage = (page) => {
+    stockPage = Math.max(0, Math.min(page, totalPages - 1));
+    grid.innerHTML = '';
+    const startIdx = stockPage * PAGE_SIZE;
+    const endIdx = Math.min(startIdx + PAGE_SIZE, DISTRICTS.length);
+    for (let di = startIdx; di < endIdx; di++) {
+      const d = DISTRICTS[di];
     const st = s.stocks[d.id];
     const have = me.stocks[d.id];
     const fresh = me.unsettled[d.id] || 0;
@@ -915,8 +924,20 @@ function renderStocksInto(holder, driver, refresh, at = null) {
       <div class="sc-pr">$${st.price} <span class="chg ${st.price >= st.par ? 'up' : 'down'}">${st.price >= st.par ? '▲' : '▼'}</span></div>
       <div class="sc-have">you ${have}${fresh ? ` · <span class="fresh" title="Sellable and dividend-earning after you pass Go">${fresh} new</span>` : ''}</div>
       <div class="sc-btns"><input type="number" min="1" value="5" data-n="${d.id}"><button class="btn small gold" data-buy="${d.id}">Buy</button><button class="btn small" data-sell="${d.id}" ${sellable ? '' : 'disabled'} title="${sellable ? '' : 'New shares settle after you pass Go'}">Sell</button></div>`;
-    grid.append(cell);
-  }
+      grid.append(cell);
+    }
+    // pagination controls
+    if (totalPages > 1) {
+      const pag = el('div', 'stock-pagination');
+      for (let p = 0; p < totalPages; p++) {
+        const b = el('button', 'pg-btn' + (p === stockPage ? ' on' : ''), String(p + 1));
+        b.onclick = () => renderPage(p);
+        pag.append(b);
+      }
+      grid.append(pag);
+    }
+  };
+  renderPage(0);
   holder.append(grid);
   grid.querySelectorAll('[data-buy]').forEach(b => b.onclick = () => {
     driver.humanAct('buyStock', { dist: b.dataset.buy, n: parseInt(grid.querySelector(`[data-n="${b.dataset.buy}"]`).value || '1'), at });

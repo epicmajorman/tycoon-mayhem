@@ -394,3 +394,16 @@ so the right button never leaves the page; right-drag panning still works when a
   3800 directional blade streaks, mow stripes, micro-noise, vignette); the beach
   uses multi-grain sand with wave ripples, shell fragments and pebbles; the pool
   gets a procedural caustic web texture. All at 512-1024px with 16× anisotropy.
+
+## 27. Round 15: auction overhaul, stock pagination, money verification
+
+- **Auction overhaul**: bidders see their own cash, owned properties (expandable asset
+  list), and color-group monopoly impact lines for every player. Trade button during
+  auction to propose side deals. **20-second countdown timer** per bid turn with
+  auto-pass on timeout. Bid amount buttons properly sync the Bid button label.
+  Asset preview shows the painted tile art directly in the auction.
+- **Stock market pagination**: stock grid paginates at 9 per page with numbered
+  page buttons instead of scrolling — all districts reachable without losing context.
+- **Money verification**: netWorth = cash + property price + building costs + stock
+  value + pyramid position (40% face) + deal assets + dreams − loan debt. All
+  component formulas verified and correct.

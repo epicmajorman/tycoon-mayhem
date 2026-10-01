@@ -464,3 +464,30 @@ h1.logo { font-family: var(--serif); font-size: clamp(30px, 4.6vw, 54px); font-w
 .tr-net.tr-warn { color: #ffd9a0; }
 .tr-impacts { margin-top: 6px; display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--brass); }
 .tr-impacts div::before { content: '◆ '; opacity: 0.6; }
+
+/* auction improvements */
+.bid-me { display: flex; align-items: center; gap: 8px; font-size: 14px; flex-wrap: wrap; padding: 8px 10px; border-radius: 10px; background: rgba(15, 7, 2, 0.5); border: 1px solid var(--line); }
+.bid-me .bdot { width: 16px; height: 16px; border-radius: 50%; flex: none; }
+.bid-me .bid-cash { font-size: 16px; }
+.bid-mono { width: 100%; font-size: 12px; color: var(--brass); margin-top: 4px; line-height: 1.5; }
+.bid-assets-details { margin-top: 8px; }
+.bid-assets-details summary { cursor: pointer; font-size: 12.5px; color: var(--brass); font-weight: 700; }
+.bid-assets-grid { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.bid-asset { font-size: 11px; padding: 2px 7px; border-radius: 6px; border: 1px solid var(--line); background: rgba(15,7,2,0.5); }
+.auction-timer { text-align: center; font-family: var(--display); font-weight: 800; font-size: 15px; color: var(--gold); margin-top: 8px; min-height: 20px; }
+.auction-timer.warning { color: var(--danger); animation: timerPulse 0.5s infinite; }
+@keyframes timerPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* paginated stock grid */
+.stock-grid-paged { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; align-content: start; }
+.stock-pagination { display: flex; gap: 6px; justify-content: center; margin-top: 10px; align-items: center; }
+.stock-pagination .pg-btn { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--line); background: rgba(15,7,2,0.5); color: var(--cream); cursor: pointer; font-family: var(--mono); font-size: 13px; }
+.stock-pagination .pg-btn.on { background: var(--gold); color: #33210a; font-weight: 800; border-color: var(--gold-deep); }
+.stock-pagination .pg-btn:hover { border-color: var(--gold); }
+.stock-pagination .pg-label { font-size: 12px; color: var(--dim); font-family: var(--mono); }
+
+/* paginated portfolio */
+.pf-page { display: flex; flex-direction: column; gap: 8px; }
+.pf-pagination { display: flex; gap: 5px; justify-content: center; margin-top: 8px; }
+.pf-pagination .pg-btn { width: 26px; height: 26px; border-radius: 7px; border: 1px solid var(--line); background: rgba(15,7,2,0.5); color: var(--cream); cursor: pointer; font-size: 12px; }
+.pf-pagination .pg-btn.on { background: var(--gold); color: #33210a; font-weight: 800; }
