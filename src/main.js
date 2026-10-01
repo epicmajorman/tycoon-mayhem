@@ -209,7 +209,10 @@ class Driver {
     if (!demo) {
       const nm = (i) => this.engine.s.players[i]?.name || '?';
       const dn = (i) => this.engine.s.players[i]?.color || '#fff';
-      eng.on('turnStart', (e) => this.hud?.action('▶', `${nm(e.player)}'s turn`, dn(e.player)));
+      eng.on('turnStart', (e) => {
+        this.hud?.action('▶', `${nm(e.player)}'s turn`, dn(e.player));
+        this.hud?.syncTurn();
+      });
     eng.on('rolled', (e) => this.hud?.diceRoll(e));
       eng.on('stock', (e) => this.hud?.action(e.delta >= 0 ? '📈' : '📉', `${nm(e.player)} ${e.delta >= 0 ? 'buys' : 'sells'} ${Math.abs(e.delta)} shares · ${DISTRICTS[D[e.dist]].name}`, dn(e.player)));
       eng.on('fx:build', (e) => this.hud?.action('🏗️', `${nm(e.player)} builds on ${TILES[e.tile].name}`, dn(e.player)));
@@ -285,6 +288,8 @@ class Driver {
       this.scheduleAI(e.player);
       return;
     }
+    // human prompt: clear any lingering AI think timer — the game waits for you
+    clearTimeout(this.thinkTimer);
     if (this.isRemoteSeat(e.player)) {
       if (this.mode === 'net-host') {
         this.net.send({ t: 'prompt', kind: e.kind, player: e.player });

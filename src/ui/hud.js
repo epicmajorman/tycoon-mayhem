@@ -155,6 +155,14 @@ export class Hud {
       sum.classList.remove('pop'); void sum.offsetWidth; sum.classList.add('pop');
     }, 560);
   }
+  // called on turnStart — keeps the turn indicator tracking the active player
+  syncTurn() {
+    const s = this.driver.state;
+    if (!s) return;
+    document.querySelectorAll('.pcard').forEach((card, i) => {
+      card.classList.toggle('turn', s.players[i] && s.players[i].id === s.turn && !s.players[i].bankrupt);
+    });
+  }
   toast(msg, ms = 2200) {
     const t = $('#toast');
     t.textContent = msg;
@@ -182,6 +190,18 @@ export class Hud {
   render() {
     const s = this.driver.state;
     if (!s) return;
+    // dice widget: show current state, clear stale animations
+    const dw = $('#dicewidget');
+    if (dw) {
+      dw.classList.remove('drolling');
+      const ds = dw.querySelectorAll('.die');
+      const sum = dw.querySelector('.dsum');
+      if (ds[0] && s.dice) {
+        this.setFace(ds[0], s.dice[0]);
+        if (ds[1]) this.setFace(ds[1], s.dice[1]);
+        if (sum) sum.textContent = String(s.dice[0] + s.dice[1] + (typeof s.speedFace === 'number' ? s.speedFace : 0));
+      }
+    }
     // topbar
     const target = s.flags.winMode === 'target' ? `<span class="sep">|</span> 🎯 Target <b>${fmt(s.effTarget ?? s.flags.targetWorth)}</b>` : '';
     const leader = s.players.filter(p => !p.bankrupt).reduce((a, b) => netWorth(s, a) >= netWorth(s, b) ? a : b);

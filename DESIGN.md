@@ -382,3 +382,15 @@ so the right button never leaves the page; right-drag panning still works when a
   then settle facing outward at the destination tile.
 - **Bot badge no longer clipped**: player card widened to 286px, name shrinks to
   reserve room for the HUMAN/STANDARD badge.
+
+## 26. Round 14: turn tracking, pool/grass/sand textures, AI patience
+
+- **Turn indicator + dice widget sync**: turnStart now calls syncTurn() so the
+  gold-border highlight and YOUR MOVE pill track the active player instantly.
+  Dice widget shows current dice on render, clearing stale animation states.
+- **Game pauses for humans**: human prompts clear any lingering AI think timer,
+  so the engine truly waits for the human's decision.
+- **Realistic textures**: the board felt uses layered grass (organic tonal patches,
+  3800 directional blade streaks, mow stripes, micro-noise, vignette); the beach
+  uses multi-grain sand with wave ripples, shell fragments and pebbles; the pool
+  gets a procedural caustic web texture. All at 512-1024px with 16× anisotropy.

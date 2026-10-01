@@ -114,24 +114,46 @@ export class Board3D {
     const extent = RING_GEO[0].half + RING_GEO[0].ts / 2;
     const pad = 2.2; // wide sandy beach margin around the felt, toy-boardgame style
     const outer = extent + pad;
-    // island base: rippled sand
-    const sandMap = canvasTex(256, 256, (ctx) => {
-      const g = ctx.createLinearGradient(0, 0, 0, 256);
-      g.addColorStop(0, '#f4e6bc'); g.addColorStop(1, '#e8d49e');
-      ctx.fillStyle = g; ctx.fillRect(0, 0, 256, 256);
-      for (let i = 0; i < 1400; i++) {
-        ctx.fillStyle = Math.random() < 0.5 ? 'rgba(215,190,140,0.5)' : 'rgba(250,240,214,0.5)';
-        ctx.fillRect(Math.random() * 256, Math.random() * 256, 1.6, 1.6);
+    // island base: realistic beach sand — grain layers, wave ripples, tonal drift
+    const sandMap = canvasTex(512, 512, (ctx) => {
+      const g = ctx.createLinearGradient(0, 0, 0, 512);
+      g.addColorStop(0, '#f6e9c2'); g.addColorStop(0.5, '#eedeae'); g.addColorStop(1, '#e4d098');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, 512, 512);
+      // fine grain
+      for (let i = 0; i < 6000; i++) {
+        ctx.globalAlpha = 0.08 + Math.random() * 0.12;
+        ctx.fillStyle = Math.random() < 0.5 ? '#d9c493' : '#faf0d6';
+        ctx.fillRect(Math.random() * 512, Math.random() * 512, 1, 1);
       }
-      ctx.strokeStyle = 'rgba(186, 156, 104, 0.22)';
-      ctx.lineWidth = 2.2;
-      for (let i = 0; i < 11; i++) {
-        const y = 12 + i * 22 + Math.random() * 8;
+      // medium grain
+      for (let i = 0; i < 1800; i++) {
+        ctx.globalAlpha = 0.06 + Math.random() * 0.1;
+        ctx.fillStyle = Math.random() < 0.5 ? '#c9b280' : '#f5e8c4';
+        ctx.fillRect(Math.random() * 512, Math.random() * 512, 1.8, 1.8);
+      }
+      // shell fragments / pebbles
+      for (let i = 0; i < 80; i++) {
+        ctx.globalAlpha = 0.1 + Math.random() * 0.15;
+        ctx.fillStyle = Math.random() < 0.5 ? '#c9a86a' : '#e8dcc0';
         ctx.beginPath();
-        for (let x = 0; x <= 256; x += 16) ctx.lineTo(x, y + Math.sin(x * 0.05 + i) * 4);
+        ctx.arc(Math.random() * 512, Math.random() * 512, 1 + Math.random() * 2.5, 0, 7);
+        ctx.fill();
+      }
+      // wave ripples: sinuous lines with varying opacity
+      ctx.lineWidth = 1.6;
+      for (let i = 0; i < 20; i++) {
+        const y = 16 + i * 25 + Math.random() * 10;
+        ctx.globalAlpha = 0.08 + Math.random() * 0.1;
+        ctx.strokeStyle = i % 2 === 0 ? '#c4a76a' : '#f0e2b8';
+        ctx.beginPath();
+        for (let x = 0; x <= 512; x += 12) ctx.lineTo(x, y + Math.sin(x * 0.04 + i * 1.5) * 5);
         ctx.stroke();
       }
+      ctx.globalAlpha = 1;
     });
+    sandMap.wrapS = sandMap.wrapT = THREE.RepeatWrapping;
+    sandMap.repeat.set(5, 5);
+    sandMap.anisotropy = 16;
     sandMap.wrapS = sandMap.wrapT = THREE.RepeatWrapping;
     sandMap.repeat.set(6, 6);
     const base = new THREE.Mesh(
@@ -178,33 +200,56 @@ export class Board3D {
       edge.position.y = RING_Y[r] + 0.04;
       this.group.add(edge);
     }
-    // painted felt: mottled toy-grass cloth
-    const feltTex = canvasTex(512, 512, (ctx) => {
-      ctx.fillStyle = '#43b45e'; ctx.fillRect(0, 0, 512, 512);
-      // organic light/dark patches first
-      for (let i = 0; i < 42; i++) {
-        const x = Math.random() * 512, y = Math.random() * 512, r = 18 + Math.random() * 52;
+    // painted felt: layered realistic grass — base tone, organic patches, directional
+    // blade streaks, mow stripes and micro-noise
+    const feltTex = canvasTex(1024, 1024, (ctx) => {
+      // base: slightly uneven green
+      ctx.fillStyle = '#3d9e54'; ctx.fillRect(0, 0, 1024, 1024);
+      // large organic tonal variation
+      for (let i = 0; i < 80; i++) {
+        const x = Math.random() * 1024, y = Math.random() * 1024, r = 30 + Math.random() * 90;
         const rg = ctx.createRadialGradient(x, y, 2, x, y, r);
         const dark = Math.random() < 0.5;
-        rg.addColorStop(0, dark ? 'rgba(38,132,72,0.30)' : 'rgba(120,214,140,0.22)');
+        rg.addColorStop(0, dark ? 'rgba(32,116,62,0.22)' : 'rgba(108,200,126,0.16)');
         rg.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = rg;
         ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
       }
-      // mow stripes for that tended-lawn read
-      ctx.globalAlpha = 0.05;
-      ctx.fillStyle = '#ffffff';
-      for (let i = 0; i < 8; i += 2) ctx.fillRect(0, i * 64, 512, 32);
-      ctx.globalAlpha = 1;
-      for (let i = 0; i < 2600; i++) {
-        ctx.globalAlpha = 0.05 + Math.random() * 0.09;
-        ctx.fillStyle = Math.random() < 0.5 ? '#2f9a4c' : '#5ecb74';
-        ctx.fillRect(Math.random() * 512, Math.random() * 512, 2.2, 2.2);
+      // directional blade streaks (short angled lines in varied greens)
+      const bladeColors = ['#2e8c46', '#4db368', '#38a355', '#5ac470', '#349850', '#61c778'];
+      for (let i = 0; i < 3800; i++) {
+        const x = Math.random() * 1024, y = Math.random() * 1024;
+        const len = 3 + Math.random() * 7;
+        const ang = -0.3 + Math.random() * 0.6; // mostly vertical blades
+        ctx.strokeStyle = bladeColors[Math.floor(Math.random() * bladeColors.length)];
+        ctx.globalAlpha = 0.12 + Math.random() * 0.2;
+        ctx.lineWidth = 0.8 + Math.random() * 0.8;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + Math.sin(ang) * len, y - Math.cos(ang) * len);
+        ctx.stroke();
       }
       ctx.globalAlpha = 1;
-      const v = ctx.createRadialGradient(256, 256, 150, 256, 256, 360);
-      v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(6,60,26,0.28)');
-      ctx.fillStyle = v; ctx.fillRect(0, 0, 512, 512);
+      // mow stripes: alternating light/dark bands
+      for (let i = 0; i < 16; i += 2) {
+        ctx.globalAlpha = 0.04;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, i * 64, 1024, 64);
+        ctx.globalAlpha = 0.03;
+        ctx.fillStyle = '#1a5c30';
+        ctx.fillRect(0, (i + 1) * 64, 1024, 64);
+      }
+      ctx.globalAlpha = 1;
+      // fine micro-noise for texture grain
+      for (let i = 0; i < 6000; i++) {
+        ctx.globalAlpha = 0.03 + Math.random() * 0.06;
+        ctx.fillStyle = Math.random() < 0.5 ? '#2a8a44' : '#68cc80';
+        ctx.fillRect(Math.random() * 1024, Math.random() * 1024, 1, 1);
+      }
+      ctx.globalAlpha = 1;
+      const v = ctx.createRadialGradient(512, 512, 300, 512, 512, 720);
+      v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(6,50,24,0.25)');
+      ctx.fillStyle = v; ctx.fillRect(0, 0, 1024, 1024);
     });
     const felt = new THREE.Mesh(
       new THREE.BoxGeometry(RING_GEO[0].half * 2 + RING_GEO[0].ts + 0.4, 0.1, RING_GEO[0].half * 2 + RING_GEO[0].ts + 0.4),
@@ -312,13 +357,34 @@ export class Board3D {
     const poolR = 1.55 * Math.max(1, u * 0.9);
     const pool = new THREE.Mesh(
       new THREE.CylinderGeometry(poolR, poolR + 0.18, 0.4, 32),
-      new THREE.MeshStandardMaterial({ color: '#0f2b33', roughness: 0.3, metalness: 0.4, emissive: '#0e4b5a', emissiveIntensity: 0.5 })
+      new THREE.MeshStandardMaterial({ color: '#1a3a4a', roughness: 0.35, metalness: 0.3 })
     );
     pool.position.set(pp.x, 0.2, pp.z);
     g.add(pool);
+    // pool water: procedural caustic texture
+    const poolTex = canvasTex(256, 256, (ctx) => {
+      ctx.fillStyle = '#1a8fa8'; ctx.fillRect(0, 0, 256, 256);
+      // caustic web: overlapping arcs of lighter blue
+      ctx.lineWidth = 1.5;
+      for (let i = 0; i < 50; i++) {
+        const x = Math.random() * 256, y = Math.random() * 256, r = 8 + Math.random() * 28;
+        ctx.globalAlpha = 0.12 + Math.random() * 0.18;
+        ctx.strokeStyle = '#5ed4e8';
+        ctx.beginPath(); ctx.arc(x, y, r, Math.random() * 7, Math.random() * 7 + 2); ctx.stroke();
+      }
+      // highlights
+      for (let i = 0; i < 30; i++) {
+        ctx.globalAlpha = 0.1 + Math.random() * 0.15;
+        ctx.strokeStyle = '#a0f0ff';
+        ctx.beginPath(); ctx.arc(Math.random() * 256, Math.random() * 256, 4 + Math.random() * 16, 0, Math.PI); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    });
+    poolTex.wrapS = poolTex.wrapT = THREE.RepeatWrapping;
+    poolTex.repeat.set(2, 2);
     const water = new THREE.Mesh(
       new THREE.CylinderGeometry(poolR - 0.25, poolR - 0.25, 0.14, 32),
-      new THREE.MeshStandardMaterial({ color: '#1fb2c9', roughness: 0.1, metalness: 0.6, emissive: '#0d7f96', emissiveIntensity: 0.7 })
+      new THREE.MeshStandardMaterial({ map: poolTex, color: '#3ac0d8', roughness: 0.08, metalness: 0.4, emissive: '#0d7f96', emissiveIntensity: 0.4 })
     );
     water.position.set(pp.x, 0.45, pp.z);
     g.add(water);
